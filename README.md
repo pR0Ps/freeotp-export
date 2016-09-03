@@ -1,33 +1,49 @@
-# freeotp-export
+FreeOTP QR Code Exporter
+========================
 
-FreeOTP qrcode exporter app in javascript
+[FreeOTP](https://fedorahosted.org/freeotp/) is a TOTP-compatible authenticator app. It is developed
+by RedHat and is open source.
 
-Backround: FreeOTP is a Google Authenticator compatible open source Android app, made by Red Hat. Available at https://play.google.com/store/apps/details?id=org.fedorahosted.freeotp .
+If you would like to move to a different TOTP app, a new phone, or just back up your OTP secrets in
+case you lost/break your phone, this app can create QR codes that can be read by other TOTP apps.
 
-Google authenticator does not allow backuping the secrets with adb, to backup one needs a rooted phone. FreeOTP however allows adb backup. The backup file obviously can be restored to any android phone, but for easy transfer to other phones, you can create qrcodes with this app. The app does all processing locally, no data is sent anywhere (this is easy to verify with browser developer tools, also the main source of the app is pretty simple, most of the code is in third party libraries).
+This app does all processing locally client side, no data is sent over the network. This can be
+verified by looking at the source code (less than 100 lines of JS + the QR code library) or by using
+your browser developer tools while running it.
 
-__Be sure to understand the security implications of backing up the secrets from the authenticator app, and writing them on your computer storage.__
+__Although no data leaves your computer, be sure to understand the security implications of backing
+up OTP secrets.__
 
-# Instructions
+Instructions
+------------
 
-Make an adb backup of FreeOTP, (details on how to do this are currenly left as an excercise for the reader. While you are doing the backup, consider the above warning!). Open the adb backup file (.ab) with this app. Read the displayed qrcodes with the authenticator app on your other phone.
+Obtain the `tokens.xml` file from the FreeOTP app's stored data.
 
-The author has tested the app with current Google Chrome and Mozilla Firefox on Ubuntu 14.04 in September 2015. Other browsers probably do not work. Generated qrcodes have been succesfully imported in FreeOTP and Google Authenticator on Android and Microsoft Authenticator on Windows Phone 8.
+On rooted devices, this can be done just pulling the file:
+```
+adb pull /data/data/org.fedorahosted.freeotp/shared_prefs/tokens.xml
+```
 
-This app can be opened directly at https://rawgit.com/viljoviitanen/freeotp-export/master/export.html 
+On a non-rooted device, the file can be recovered by backing up the app and extracting the contents
+of the backup file. See [this StackOverflow post](http://stackoverflow.com/a/14686392/369977) for
+details.
 
-#Acknowledgements
+Once you have the `tokens.xml` file, load it into the app. The QR codes will be displayed below.
+You can then either scan the QR codes into a TOTP-compatible app immediately, print them, or save
+them. If you choose to store them in any way, make sure to do so safely.
 
-Based on https://github.com/philipsharp/FreeOTPDecoder (Apache license)
+This should work on any modern browser, but has only been tested on Firefox 48 and Chrome 52.
 
-Uses https://github.com/davidshimjs/qrcodejs (MIT license)
+To open the app directly, visit https://rawgit.com/pR0Ps/freeotp-export/master/index.html
 
-Uses https://github.com/nodeca/pako (MIT license)
+Acknowledgements
+----------------
 
-Uses https://github.com/Qvazar/js-untar (MIT license)
+- Based on https://github.com/philipsharp/FreeOTPDecoder (Apache license)
+- Uses https://github.com/davidshimjs/qrcodejs (MIT license)
+- Content served by https://rawgit.com/
 
-Content is served by https://rawgit.com/
-
-# License
+License
+-------
 
 Apache License, Version 2.0

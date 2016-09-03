@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>FreeOTP QR Code Generator</title>
+  <style type="text/css">
+    body {
+      margin: auto;
+      color: #000000;
+      background-color: #FFFFFF;
+      font-family: 'arial', 'sans-serif';
+      text-decoration: none;
+      text-align: center;
+      max-width: 1200px;
+    }
+    main {
+      margin: auto;
+      max-width: 600px;
+      margin-top: 100px;
+    }
+    div.code {
+      padding: 10px;
+      width: 350px;
+      display: inline-block;
+      word-wrap: break-word;
+    }
+    code {
+      padding: 0.1em 0;
+      background-color: #F0F0F0
+    }
+    img{
+      margin: auto;
+    }
+    img#gh-banner {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border: 0;
+    }
+    input {
+      padding: 5px 5px;
+      border-radius: 5px;
+      -webkit-border-radius: 5px;
+      border: 2px solid;
+    }
+    @media print {
+      main {
+        display: none;
+      }
+    }
+  </style>
+  <script src="https://rawgit.com/davidshimjs/qrcodejs/04f46c6a0708418cb7b96fc563eacae0fbf77674/qrcode.min.js"></script>
+  <script type="text/javascript">
+    // Convert stored secret into otpauth URI parameter
+    // Ported from https://github.com/philipsharp/FreeOTPDecoder/blob/c9faed2/decoder.php#L97
+    function encodeSecretBytes(data) {
+      DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567' // 32 chars
+      SHIFT = 5; // trailing zeros in binary representation of the size of the alphabet
+      MASK = 31; // one less than size of alphabet
+
+      // SHIFT is the number of bits per output character, so the length of the
+      // output is the length of the input multiplied by 8/SHIFT, rounded up.
+      if (data.length >= (1 << 28)) {
+        throw 'Bad Secret';
+      }
+      outputLength = (data.length * 8 + SHIFT - 1) / SHIFT;
+      result = '';
+      buffer = data[0];
+      next = 1;
+      bitsLeft = 8;
+      while (bitsLeft > 0 || next < data.length) {
+        if (bitsLeft < SHIFT) {
+          if (next < data.length) {
+            buffer <<= 8;
+            buffer |= (data[next++] & 0xff);
+            bitsLeft += 8;
+          } else {
+            pad = SHIFT - bitsLeft;
+            buffer <<= pad;
+            bitsLeft += pad;
+          }
+        }
+        index = MASK & (buffer >> (bitsLeft - SHIFT));
+        bitsLeft -= SHIFT;
+        result += DIGITS[index];
+      }
+      return result;
+    }
+
+    //Turn a dictionary into query data
+    function querydata(p) {
+      var r = [];
+      for (var d in p) {
+        r.push(encodeURIComponent(d) + "=" + encodeURIComponent(p[d]));
+      }
+      return r.join("&");
+    }
+
+    function generateCodes(param) {
+      var parser = new DOMParser();
+      var xml = parser.parseFromString(param, "text/xml");
+      var s = xml.getElementsByTagName('string');
+      if (s.length == 0) {
+        throw 'Cannot parse the file';
+      }
+
+      var codediv = document.getElementById("codes")
+
+      for (var i = 0, len = s.length; i < len; i++) {
+        var name = s[i].attributes['name'].value;
+        if (name == 'tokenOrder') {
+          continue;
+        }
+
+        var j = JSON.parse(s[i].textContent);
+        var type = j['type'].toLowerCase()
+        var label = encodeURIComponent((j['issuerExt'] ? j['issuerExt'] + ':' : "") + j['label']);
+        var query = querydata({
+          'secret': encodeSecretBytes(j['secret']),
+          'issuer': j['issuerInt'] ? j['issuerInt'] : j['issuerExt'],
+          'algorithm': j['algo'],
+          'digits': j['digits'],
+          'period': j['period'],
+        })
+
+        var elm = document.createElement('div')
+        elm.className = "code";
+        elm.innerHTML = "<h3>" + name + '</h3><div id="' + i + '"></div>';
+        codediv.appendChild(elm)
+
+        var uri = "otpauth://" + type + "/" + label + "?" + query;
+        new QRCode(document.getElementById(i), uri);
+      }
+    }
+
+    function go(event) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          generateCodes(event.target.result);
+        } catch (e) {
+          alert(e);
+        }
+      }
+      reader.readAsText(event.target.files[0]);
+    }
+  </script>
+</head>
+<body>
+  <main>
+    <a href="https://github.com/pR0Ps/freeotp-export"><img id="gh-banner" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+    <h1>FreeOTP QR Code Generator</h1>
+    <p>This script will generate QR codes from a FreeOTP <code>tokens.xml</code> file. The QR codes can then be used with any TOTP-compatible app.</p>
+    <p>Obviously you should be careful with these QR codes as they contain your OTP secrets. This page is implemented entirely in client-side JavaScript so your information is never sent over the network. You can verify this yourself by viewing the source code.</p>
+    <p>Browse to your <code>tokens.xml</code> file: <input type="file" onchange="go(event)"></p>
+  </main>
+  <div id="codes"></div>
+</body>
