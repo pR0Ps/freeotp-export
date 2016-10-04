@@ -5,7 +5,7 @@ FreeOTP QR Code Exporter
 by RedHat and is open source.
 
 If you would like to move to a different TOTP app, a new phone, or just back up your OTP secrets in
-case you lost/break your phone, this app can create QR codes that can be read by other TOTP apps.
+case you lose/break your phone, this app can create QR codes that can be read by other TOTP apps.
 
 This app does all processing locally client side, no data is sent over the network. This can be
 verified by looking at the source code (less than 100 lines of JS + the QR code library) or by using
