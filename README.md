@@ -34,14 +34,13 @@ them. If you choose to store them in any way, make sure to do so safely.
 
 This should work on any modern browser, but has only been tested on Firefox 48 and Chrome 52.
 
-To open the app directly, visit https://rawgit.com/pR0Ps/freeotp-export/master/index.html
+To open the app directly, visit https://pr0ps.github.io/freeotp-export/
 
 Acknowledgements
 ----------------
 
 - Based on https://github.com/philipsharp/FreeOTPDecoder (Apache license)
 - Uses https://github.com/davidshimjs/qrcodejs (MIT license)
-- Content served by https://rawgit.com/
 
 License
 -------
